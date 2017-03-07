@@ -5,8 +5,6 @@ ENV DEBIAN_FRONTEND noninteractive
 ENV LANG C.UTF-8
 ENV LC_ALL C.UTF-8
 
-RUN groupadd -r steam && useradd -r -d /home/steam -g steam steam
-
 ENV GOSU_VERSION 1.10
 RUN set -x \
     && apt-get update && apt-get install -y --no-install-recommends ca-certificates wget && rm -rf /var/lib/apt/lists/* \
@@ -29,15 +27,16 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     lsyncd \
     && rm -rf /var/lib/apt/lists/*
 
+RUN groupadd -r steam && useradd -r -d /home/steam -g steam steam
+
 WORKDIR /home/steam
 
 RUN curl -sqL "https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz" | tar zxvf -
-
-RUN mkdir Steam \
-    && ln -s /home/steam/Steam /root/Steam
 
 RUN mkdir .steam \
     && ln -s /home/steam/linux32 .steam/sdk32 \
     && ln -s /home/steam/linux64 .steam/sdk64
 
-RUN ./steamcmd.sh +login anonymous +quit
+RUN chown -R steam:steam /home/steam
+
+RUN gosu steam bash -c "./steamcmd.sh +login anonymous +quit"
